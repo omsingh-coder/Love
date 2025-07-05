@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>💖 Love Chat Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+  <style>
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #ff758c, #ff7eb3);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .page {
+      display: none;
+      height: 100vh;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      transition: all 0.5s ease;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+    }
+
+    .active {
+      display: flex;
+    }
+
+    /* 🔥 Poster Page */
+    .poster-page {
+      background: linear-gradient(135deg, #fcb69f, #ffdde1);
+      color: white;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .poster-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    .poster-content h1 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 32px;
+      max-width: 90%;
+      color: white;
+      text-shadow: 0 0 10px rgba(255,255,255,0.7);
+      margin-bottom: 50px;
+      animation: glow 2s infinite alternate;
+    }
+
+    .poster-page button {
+      padding: 15px 30px;
+      font-size: 20px;
+      border: none;
+      background-color: #ff3366;
+      color: white;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #fff;
+      transition: 0.3s;
+    }
+
+    .poster-page button:hover {
+      background-color: #cc0044;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 5px #fff, 0 0 10px #ffc0cb, 0 0 15px #ff69b4;
+      }
+      to {
+        text-shadow: 0 0 10px #fff, 0 0 20px #ff69b4, 0 0 30px #ff1493;
+      }
+    }
+
+    /* 💫 Welcome Page */
+    .welcome-page {
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    }
+
+    .welcome-box {
+      background: rgba(255,255,255,0.2);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(255,255,255,0.4);
+    }
+
+    .welcome-box h1 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 32px;
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .welcome-box input {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      outline: none;
+    }
+
+    .welcome-box button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ff3366;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    /* 💖 Chatroom */
+    .chat-container {
+      width: 95%;
+      max-width: 500px;
+      height: 90vh;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 25px;
+      box-shadow: 0 0 25px rgba(255, 192, 203, 0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      z-index: 1;
+    }
+
+    .chat-header {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 18px;
+      text-align: center;
+      font-size: 26px;
+      font-family: 'Great Vibes', cursive;
+      text-shadow: 0 0 10px #fff;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 12px 18px;
+      border-radius: 20px;
+      max-width: 75%;
+      word-wrap: break-word;
+      font-size: 15px;
+      opacity: 0;
+      animation: fadeIn 0.4s forwards;
+    }
+
+    .you {
+      align-self: flex-end;
+      background-color: rgba(255, 255, 255, 0.3);
+      border: 1px solid #fff;
+    }
+
+    .other {
+      align-self: flex-start;
+      background-color: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .chat-input input::placeholder {
+      color: rgba(255,255,255,0.7);
+      font-style: italic;
+    }
+
+    .chat-input button {
+      padding: 0 20px;
+      border: none;
+      background-color: #ff3366;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .timestamp {
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 5px;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: scale(1.02);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 🔥 Poster Page with Quote -->
+<div class="page poster-page active" id="posterPage">
+  <div class="poster-content">
+    <h1>💖 "Every love story is beautiful, but ours is my favorite." 💖</h1>
+    <button onclick="goToWelcome()">Enter Love</button>
+  </div>
+</div>
+
+<!-- 💫 Welcome Page -->
+<div class="page welcome-page" id="welcomePage">
+  <div class="welcome-box">
+    <h1>Welcome to Our Love Chat 💞</h1>
+    <input type="text" id="nameInput" placeholder="Enter your name" />
+    <br>
+    <button onclick="goToChat()">Continue</button>
+  </div>
+</div>
+
+<!-- 💖 Chatroom Page -->
+<div class="page" id="chatroomPage">
+  <div class="chat-container">
+    <div class="chat-header">💬 Love Chat Room</div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="chat-input">
+      <input type="text" id="message" placeholder="Send love..." onkeypress="handleKey(event)" />
+      <button onclick="sendMessage()">Send 💌</button>
+    </div>
+  </div>
+</div>
+
+<!-- ❤️ Firebase & JS -->
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCivXKviFlCI3BbRSuitX3Vkgj7E5Y6ZkA",
+    authDomain: "project-36ac3.firebaseapp.com",
+    databaseURL: "https://project-36ac3-default-rtdb.firebaseio.com",
+    projectId: "project-36ac3",
+    storageBucket: "project-36ac3.firebasestorage.app",
+    messagingSenderId: "292176961977",
+    appId: "1:292176961977:web:334d9728131b94f36e1668",
+    measurementId: "G-H5RQ00X96F"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  let username = "Anonymous";
+
+  function goToWelcome() {
+    document.getElementById('posterPage').classList.remove('active');
+    document.getElementById('welcomePage').classList.add('active');
+  }
+
+  function goToChat() {
+    const input = document.getElementById("nameInput").value.trim();
+    if (input) username = input;
+    document.getElementById('welcomePage').classList.remove('active');
+    document.getElementById('chatroomPage').classList.add('active');
+  }
+
+  function sendMessage() {
+    const input = document.getElementById("message");
+    const msg = input.value.trim();
+    if (msg) {
+      db.ref("chat").push({
+        sender: username,
+        text: msg,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      input.value = "";
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === "Enter") sendMessage();
+  }
+
+  db.ref("chat").on("child_added", function(snapshot) {
+    const data = snapshot.val();
+    const msgBox = document.getElementById("chat-box");
+    const msgDiv = document.createElement("div");
+    const time = document.createElement("div");
+
+    msgDiv.classList.add("message", data.sender === username ? "you" : "other");
+    msgDiv.innerHTML = `<strong>${data.sender}:</strong> ${data.text}`;
+    time.className = "timestamp";
+    time.textContent = data.time;
+
+    msgDiv.appendChild(time);
+    msgBox.appendChild(msgDiv);
+    msgBox.scrollTop = msgBox.scrollHeight;
+  });
+</script>
+</body>
+</html>
